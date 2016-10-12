@@ -3,6 +3,7 @@ package kafka
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -41,6 +42,11 @@ func NewKafkaAdapter(route *router.Route) (router.LogAdapter, error) {
 	var tmpl *template.Template
 	if text := os.Getenv("KAFKA_TEMPLATE"); text != "" {
 		tmpl, err = template.New("kafka").Parse(text)
+		if err != nil {
+			return nil, errorf("Couldn't parse Kafka message template. %v", err)
+		}
+	} else if text, err := ioutil.ReadFile("/mnt/template"); text != nil {
+		tmpl, err = template.New("kafka").Parse(string(text))
 		if err != nil {
 			return nil, errorf("Couldn't parse Kafka message template. %v", err)
 		}
